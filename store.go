@@ -22,7 +22,7 @@ func (s Store) Get(key string) (Node, bool) {
 	return n, ok
 }
 
-func (s Store) GetAll(pattern string) (Nodes, error) {
+func (s Store) Glob(pattern string) (Nodes, error) {
 	ns := make(Nodes, 0)
 	s.RLock()
 	defer s.RUnlock()

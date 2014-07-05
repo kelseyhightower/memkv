@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// Get all the nodes that where Key matches pattern.
-	nodes, err := s.GetAll("/myapp/*/*")
+	nodes, err := s.Glob("/myapp/*/*")
 	if err == nil {
 		for _, n := range nodes {
 			fmt.Printf("Key: %s, Value: %s\n", n.Key, n.Value)

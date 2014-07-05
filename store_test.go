@@ -43,35 +43,35 @@ func TestMissingKey(t *testing.T) {
 	}
 }
 
-type getAllResult struct {
+type globResult struct {
 	nodes []Node
 }
 
-func TestGetAll(t *testing.T) {
+func TestGlob(t *testing.T) {
 	s := New()
 	s.Set("/myapp/database/username", "admin")
 	s.Set("/myapp/database/password", "123456789")
 	s.Set("/myapp/port", "80")
-	want := getAllResult{
+	want := globResult{
 		nodes: []Node{
 			Node{"/myapp/database/password", "123456789"},
 			Node{"/myapp/database/username", "admin"},
 		},
 	}
-	nodes, err := s.GetAll("/myapp/*/*")
+	nodes, err := s.Glob("/myapp/*/*")
 	if err != nil {
 		t.Error(err.Error())
 	}
-	got := getAllResult{nodes}
+	got := globResult{nodes}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("wanted %v, got %v", want, got)
 	}
 }
 
-func TestGetAllBadPattern(t *testing.T) {
+func TestGlobWithBadPattern(t *testing.T) {
 	s := New()
 	s.Set("/myapp/database/username", "admin")
-	_, err := s.GetAll("[]a]")
+	_, err := s.Glob("[]a]")
 	if err == nil {
 		t.Error("expected an error on bad pattern")
 	}
