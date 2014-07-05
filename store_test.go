@@ -68,6 +68,22 @@ var globTests = []struct {
 	},
 	{
 		map[string]string{
+			"/myapp/port":                 "443",
+			"/myapp/url":                  "app.example.com",
+			"/myapp/upstream/app1":        "203.0.113.0.1:8080",
+			"/myapp/upstream/app2":        "203.0.113.0.2:8080",
+			"/myapp/upstream/app1/domain": "app.example.com",
+			"/myapp/upstream/app2/domain": "app.example.com",
+		},
+		"/myapp/upstream/*",
+		[]Node{
+			Node{"/myapp/upstream/app1", "203.0.113.0.1:8080"},
+			Node{"/myapp/upstream/app2", "203.0.113.0.2:8080"},
+		},
+		nil,
+	},
+	{
+		map[string]string{
 			"/myapp/database/password": "123456789",
 			"/myapp/database/username": "admin",
 		},
