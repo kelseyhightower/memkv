@@ -2,22 +2,30 @@ package memkv
 
 import (
 	"path/filepath"
+	"sync"
 )
 
-type Store map[string]Node
+type Store struct {
+	sync.RWMutex
+	m map[string]Node
+}
 
 func New() Store {
-	return make(Store)
+	return Store{m: make(map[string]Node)}
 }
 
 func (s Store) Get(key string) (Node, bool) {
-	n, ok := s[key]
+	s.RLock()
+	n, ok := s.m[key]
+	s.RUnlock()
 	return n, ok
 }
 
 func (s Store) GetAll(pattern string) (Nodes, error) {
 	ns := make(Nodes, 0)
-	for _, n := range s {
+	s.RLock()
+	defer s.RUnlock()
+	for _, n := range s.m {
 		m, err := filepath.Match(pattern, n.Key)
 		if err != nil {
 			return nil, err
@@ -30,5 +38,7 @@ func (s Store) GetAll(pattern string) (Nodes, error) {
 }
 
 func (s Store) Set(key string, value string) {
-	s[key] = Node{key, value}
+	s.Lock()
+	s.m[key] = Node{key, value}
+	s.Unlock()
 }

@@ -2,6 +2,7 @@
 
 Simple in memory k/v store.
 
+[![Build Status](https://travis-ci.org/kelseyhightower/memkv.svg)](https://travis-ci.org/kelseyhightower/memkv)
 
 ## Usage
 
