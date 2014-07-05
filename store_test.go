@@ -54,8 +54,8 @@ func TestGetAll(t *testing.T) {
 	s.Set("/myapp/port", "80")
 	want := getAllResult{
 		nodes: []Node{
-			Node{"/myapp/database/username", "admin"},
 			Node{"/myapp/database/password", "123456789"},
+			Node{"/myapp/database/username", "admin"},
 		},
 	}
 	nodes, err := s.GetAll("/myapp/*/*")

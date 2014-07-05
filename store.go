@@ -2,6 +2,7 @@ package memkv
 
 import (
 	"path/filepath"
+	"sort"
 	"sync"
 )
 
@@ -34,6 +35,7 @@ func (s Store) GetAll(pattern string) (Nodes, error) {
 			ns = append(ns, n)
 		}
 	}
+	sort.Sort(ns)
 	return ns, nil
 }
 
