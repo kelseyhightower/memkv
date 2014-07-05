@@ -23,6 +23,13 @@ func New() Store {
 	return Store{m: make(map[string]Node)}
 }
 
+// Delete deletes the Node associated with key.
+func (s Store) Delete(key string) {
+	s.Lock()
+	delete(s.m, key)
+	s.Unlock()
+}
+
 // Get gets the Node associated with key. If there are no Nodes
 // associated with key, Get returns Node{}, false.
 func (s Store) Get(key string) (Node, bool) {

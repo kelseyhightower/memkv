@@ -75,3 +75,22 @@ func TestGlob(t *testing.T) {
 		}
 	}
 }
+
+func TestDelete(t *testing.T) {
+	s := New()
+	s.Set("/app/port", "8080")
+	want := Node{"/app/port", "8080"}
+	got, ok := s.Get("/app/port")
+	if !ok || got != want {
+		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, ok, want, true)
+	}
+	// Delete the node.
+	s.Delete("/app/port")
+	want = Node{}
+	got, ok = s.Get("/app/port")
+	if ok || got != want {
+		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, ok, want, false)
+	}
+	// Delete a missing node.
+	s.Delete("/app/port")
+}
