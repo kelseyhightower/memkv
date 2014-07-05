@@ -67,3 +67,12 @@ func TestGetAll(t *testing.T) {
 		t.Errorf("wanted %v, got %v", want, got)
 	}
 }
+
+func TestGetAllBadPattern(t *testing.T) {
+	s := New()
+	s.Set("/myapp/database/username", "admin")
+	_, err := s.GetAll("[]a]")
+	if err == nil {
+		t.Error("expected an error on bad pattern")
+	}
+}
