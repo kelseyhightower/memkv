@@ -1,6 +1,7 @@
 package memkv
 
 import (
+	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -47,32 +48,49 @@ type globResult struct {
 	nodes []Node
 }
 
-func TestGlob(t *testing.T) {
-	s := New()
-	s.Set("/myapp/database/username", "admin")
-	s.Set("/myapp/database/password", "123456789")
-	s.Set("/myapp/port", "80")
-	want := globResult{
-		nodes: []Node{
+var globTests = []struct {
+	input   map[string]string
+	pattern string
+	want    []Node
+	err     error
+}{
+	{
+		map[string]string{
+			"/myapp/database/password": "123456789",
+			"/myapp/database/username": "admin",
+		},
+		"/myapp/*/*",
+		[]Node{
 			Node{"/myapp/database/password", "123456789"},
 			Node{"/myapp/database/username", "admin"},
 		},
-	}
-	nodes, err := s.Glob("/myapp/*/*")
-	if err != nil {
-		t.Error(err.Error())
-	}
-	got := globResult{nodes}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("wanted %v, got %v", want, got)
-	}
+		nil,
+	},
+	{
+		map[string]string{
+			"/myapp/database/password": "123456789",
+			"/myapp/database/username": "admin",
+		},
+		"[]a]",
+		nil,
+		filepath.ErrBadPattern,
+	},
 }
 
-func TestGlobWithBadPattern(t *testing.T) {
-	s := New()
-	s.Set("/myapp/database/username", "admin")
-	_, err := s.Glob("[]a]")
-	if err == nil {
-		t.Error("expected an error on bad pattern")
+func TestGlob(t *testing.T) {
+	for _, tt := range globTests {
+		s := New()
+		for k, v := range tt.input {
+			s.Set(k, v)
+		}
+		want := globResult{tt.want}
+		nodes, err := s.Glob(tt.pattern)
+		if err != tt.err {
+			t.Error(err.Error())
+		}
+		got := globResult{nodes}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("wanted %v, got %v", want, got)
+		}
 	}
 }

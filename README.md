@@ -6,7 +6,7 @@ Simple in memory k/v store.
 
 ## Usage
 
-```
+```Go
 package main
 
 import (
@@ -27,7 +27,7 @@ func main() {
 		fmt.Printf("Key: %s, Value: %s\n", node.Key, node.Value)
 	}
 
-	// Get all the nodes that where Key matches pattern.
+	// Get all nodes where Key matches pattern.
 	nodes, err := s.Glob("/myapp/*/*")
 	if err == nil {
 		for _, n := range nodes {
