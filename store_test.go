@@ -7,40 +7,44 @@ import (
 )
 
 var getTests = []struct {
-	Key   string
-	Value string
+	key   string
+	value string
+	ok    bool
+	want  Node
 }{
-	{"/myapp/database/username", "admin"},
-	{"/myapp/database/password", "123456789"},
+	{
+		"/myapp/database/username",
+		"admin",
+		true,
+		Node{"/myapp/database/username", "admin"},
+	},
+	{
+		"/myapp/database/password",
+		"123456789",
+		true,
+		Node{"/myapp/database/password", "123456789"},
+	},
+	{
+		"/missing",
+		"",
+		false,
+		Node{},
+	},
 }
 
 func TestGet(t *testing.T) {
 	for _, tt := range getTests {
 		s := New()
-		s.Set(tt.Key, tt.Value)
-		got, ok := s.Get(tt.Key)
-		if !ok {
-			t.Errorf("missing key")
+		if tt.ok {
+			s.Set(tt.key, tt.value)
 		}
-		want := Node{tt.Key, tt.Value}
-		if got != want {
-			t.Errorf("wanted %v, got %v", want, got)
+		got, ok := s.Get(tt.key)
+		if ok != tt.ok {
+			t.Errorf("wanted %v, got %v", tt.ok, got)
 		}
-	}
-}
-
-type missingKeyResult struct {
-	node Node
-	ok   bool
-}
-
-func TestMissingKey(t *testing.T) {
-	s := New()
-	want := missingKeyResult{Node{}, false}
-	node, ok := s.Get("/missing/key")
-	got := missingKeyResult{node, ok}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("wanted %v, got %v", want, got)
+		if got != tt.want {
+			t.Errorf("wanted %v, got %v", tt.want, got)
+		}
 	}
 }
 
