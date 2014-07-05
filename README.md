@@ -2,7 +2,7 @@
 
 Simple in memory k/v store.
 
-[![Build Status](https://travis-ci.org/kelseyhightower/memkv.svg)](https://travis-ci.org/kelseyhightower/memkv)
+[![Build Status](https://travis-ci.org/kelseyhightower/memkv.svg)](https://travis-ci.org/kelseyhightower/memkv) [![GoDoc](https://godoc.org/github.com/kelseyhightower/memkv?status.png)](https://godoc.org/github.com/kelseyhightower/memkv)
 
 ## Usage
 
