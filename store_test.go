@@ -6,111 +6,72 @@ import (
 	"testing"
 )
 
-var getTests = []struct {
+var gettests = []struct {
 	key   string
 	value string
 	ok    bool
 	want  Node
 }{
-	{
-		"/myapp/database/username",
-		"admin",
-		true,
-		Node{"/myapp/database/username", "admin"},
-	},
-	{
-		"/myapp/database/password",
-		"123456789",
-		true,
-		Node{"/myapp/database/password", "123456789"},
-	},
-	{
-		"/missing",
-		"",
-		false,
-		Node{},
-	},
+	{"/db/user", "admin", true, Node{"/db/user", "admin"}},
+	{"/db/pass", "foo", true, Node{"/db/pass", "foo"}},
+	{"/missing", "", false, Node{}},
 }
 
 func TestGet(t *testing.T) {
-	for _, tt := range getTests {
+	for _, tt := range gettests {
 		s := New()
 		if tt.ok {
 			s.Set(tt.key, tt.value)
 		}
 		got, ok := s.Get(tt.key)
-		if ok != tt.ok {
-			t.Errorf("wanted %v, got %v", tt.ok, got)
-		}
-		if got != tt.want {
-			t.Errorf("wanted %v, got %v", tt.want, got)
+		if got != tt.want || ok != tt.ok {
+			t.Errorf("Get(%q) = %v, %v, want %v, %v", tt.key, got, ok, tt.want, tt.ok)
 		}
 	}
 }
 
-type globResult struct {
-	nodes []Node
+var globtestinput = map[string]string{
+	"/app/db/pass":               "foo",
+	"/app/db/user":               "admin",
+	"/app/port":                  "443",
+	"/app/url":                   "app.example.com",
+	"/app/vhosts/host1":          "app.example.com",
+	"/app/upstream/host1":        "203.0.113.0.1:8080",
+	"/app/upstream/host1/domain": "app.example.com",
+	"/app/upstream/host2":        "203.0.113.0.2:8080",
+	"/app/upstream/host2/domain": "app.example.com",
 }
 
-var globTests = []struct {
-	input   map[string]string
+var globtests = []struct {
 	pattern string
-	want    []Node
 	err     error
+	want    []Node
 }{
-	{
-		map[string]string{
-			"/myapp/database/password": "123456789",
-			"/myapp/database/username": "admin",
-		},
-		"/myapp/*/*",
+	{"/app/db/*", nil,
 		[]Node{
-			Node{"/myapp/database/password", "123456789"},
-			Node{"/myapp/database/username", "admin"},
-		},
-		nil,
-	},
-	{
-		map[string]string{
-			"/myapp/port":                 "443",
-			"/myapp/url":                  "app.example.com",
-			"/myapp/upstream/app1":        "203.0.113.0.1:8080",
-			"/myapp/upstream/app2":        "203.0.113.0.2:8080",
-			"/myapp/upstream/app1/domain": "app.example.com",
-			"/myapp/upstream/app2/domain": "app.example.com",
-		},
-		"/myapp/upstream/*",
+			Node{"/app/db/pass", "foo"},
+			Node{"/app/db/user", "admin"}}},
+	{"/app/*/host1", nil,
 		[]Node{
-			Node{"/myapp/upstream/app1", "203.0.113.0.1:8080"},
-			Node{"/myapp/upstream/app2", "203.0.113.0.2:8080"},
-		},
-		nil,
-	},
-	{
-		map[string]string{
-			"/myapp/database/password": "123456789",
-			"/myapp/database/username": "admin",
-		},
-		"[]a]",
-		nil,
-		filepath.ErrBadPattern,
-	},
+			Node{"/app/upstream/host1", "203.0.113.0.1:8080"},
+			Node{"/app/vhosts/host1", "app.example.com"}}},
+
+	{"/app/upstream/*", nil,
+		[]Node{
+			Node{"/app/upstream/host1", "203.0.113.0.1:8080"},
+			Node{"/app/upstream/host2", "203.0.113.0.2:8080"}}},
+	{"[]a]", filepath.ErrBadPattern, nil},
 }
 
 func TestGlob(t *testing.T) {
-	for _, tt := range globTests {
-		s := New()
-		for k, v := range tt.input {
-			s.Set(k, v)
-		}
-		want := globResult{tt.want}
-		nodes, err := s.Glob(tt.pattern)
-		if err != tt.err {
-			t.Error(err.Error())
-		}
-		got := globResult{nodes}
-		if !reflect.DeepEqual(got, want) {
-			t.Errorf("wanted %v, got %v", want, got)
+	s := New()
+	for k, v := range globtestinput {
+		s.Set(k, v)
+	}
+	for _, tt := range globtests {
+		got, err := s.Glob(tt.pattern)
+		if !reflect.DeepEqual([]Node(got), []Node(tt.want)) || err != tt.err {
+			t.Errorf("Glob(%q) = %v, %v, want %v, %v", tt.pattern, got, err, tt.want, tt.err)
 		}
 	}
 }
