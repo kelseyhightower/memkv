@@ -9,23 +9,23 @@ import (
 var gettests = []struct {
 	key   string
 	value string
-	ok    bool
-	want  Node
+	err   error
+	want  string
 }{
-	{"/db/user", "admin", true, Node{"/db/user", "admin"}},
-	{"/db/pass", "foo", true, Node{"/db/pass", "foo"}},
-	{"/missing", "", false, Node{}},
+	{"/db/user", "admin", nil, "admin"},
+	{"/db/pass", "foo", nil, "foo"},
+	{"/missing", "", ErrNotExist, ""},
 }
 
 func TestGet(t *testing.T) {
 	for _, tt := range gettests {
 		s := New()
-		if tt.ok {
+		if tt.err == nil {
 			s.Set(tt.key, tt.value)
 		}
-		got, ok := s.Get(tt.key)
-		if got != tt.want || ok != tt.ok {
-			t.Errorf("Get(%q) = %v, %v, want %v, %v", tt.key, got, ok, tt.want, tt.ok)
+		got, err := s.Get(tt.key)
+		if got != tt.want || err != tt.err {
+			t.Errorf("Get(%q) = %v, %v, want %v, %v", tt.key, got, err, tt.want, tt.err)
 		}
 	}
 }
@@ -79,17 +79,17 @@ func TestGlob(t *testing.T) {
 func TestDelete(t *testing.T) {
 	s := New()
 	s.Set("/app/port", "8080")
-	want := Node{"/app/port", "8080"}
-	got, ok := s.Get("/app/port")
-	if !ok || got != want {
-		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, ok, want, true)
+	want := "8080"
+	got, err := s.Get("/app/port")
+	if err != nil || got != want {
+		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, true)
 	}
 	// Delete the node.
 	s.Delete("/app/port")
-	want = Node{}
-	got, ok = s.Get("/app/port")
-	if ok || got != want {
-		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, ok, want, false)
+	want = ""
+	got, err = s.Get("/app/port")
+	if err != ErrNotExist || got != want {
+		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, false)
 	}
 	// Delete a missing node.
 	s.Delete("/app/port")

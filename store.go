@@ -6,10 +6,13 @@
 package memkv
 
 import (
+	"errors"
 	"path/filepath"
 	"sort"
 	"sync"
 )
+
+var ErrNotExist = errors.New("key does not exist")
 
 // A Store represents an in-memory key-value store safe for
 // concurrent access.
@@ -30,13 +33,16 @@ func (s Store) Delete(key string) {
 	s.Unlock()
 }
 
-// Get gets the Node associated with key. If there are no Nodes
-// associated with key, Get returns Node{}, false.
-func (s Store) Get(key string) (Node, bool) {
+// Get gets the value associated with key. If there are no values
+// associated with key, Get returns "", ErrNotExist.
+func (s Store) Get(key string) (string, error) {
 	s.RLock()
 	n, ok := s.m[key]
 	s.RUnlock()
-	return n, ok
+	if !ok {
+		return "", ErrNotExist
+	}
+	return n.Value, nil
 }
 
 // Glob returns a memkv.Node for all nodes with keys matching pattern.
