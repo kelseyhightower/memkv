@@ -46,6 +46,14 @@ func (s Store) Get(key string) (KVPair, error) {
 	return kv, nil
 }
 
+func (s Store) GetValue(key string) (string, error) {
+	kv, err := s.Get(key)
+	if err != nil {
+		return "", err
+	}
+	return kv.Value, nil
+}
+
 // GetAll returns a memkv.KVPair for all nodes with keys matching pattern.
 // The syntax of patterns is the same as in filepath.Match.
 func (s Store) GetAll(pattern string) (KVPairs, error) {
@@ -66,6 +74,18 @@ func (s Store) GetAll(pattern string) (KVPairs, error) {
 	}
 	sort.Sort(ks)
 	return ks, nil
+}
+
+func (s Store) GetAllValues(pattern string) ([]string, error) {
+	vs := make([]string, 0)
+	ks, err := s.GetAll(pattern)
+	if err != nil {
+		return vs, err
+	}
+	for _, kv := range ks {
+		vs = append(vs, kv.Value)
+	}
+	return vs, nil
 }
 
 // Set sets the KVPair entry associated with key to value.
