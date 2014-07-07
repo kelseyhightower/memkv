@@ -35,7 +35,7 @@ func (s Store) Del(key string) {
 }
 
 // Get gets the value associated with key. If there are no values
-// associated with key, Get returns "", ErrNotExist.
+// associated with key, Get returns KVPair{}, ErrNotExist.
 func (s Store) Get(key string) (KVPair, error) {
 	s.RLock()
 	kv, ok := s.m[key]
@@ -46,7 +46,7 @@ func (s Store) Get(key string) (KVPair, error) {
 	return kv, nil
 }
 
-// GetAll returns a memkv.Node for all nodes with keys matching pattern.
+// GetAll returns a memkv.KVPair for all nodes with keys matching pattern.
 // The syntax of patterns is the same as in filepath.Match.
 func (s Store) GetAll(pattern string) (KVPairs, error) {
 	ks := make(KVPairs, 0)
