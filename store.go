@@ -7,6 +7,7 @@ package memkv
 
 import (
 	"errors"
+	pathUtil "path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -97,7 +98,9 @@ func (s Store) List(path string) []string {
 	s.RLock()
 	defer s.RUnlock()
 	for _, kv := range s.m {
-		if strings.HasPrefix(kv.Key, path) {
+		if kv.Key == path {
+			m[pathUtil.Base(kv.Key)] = true
+		} else if strings.HasPrefix(kv.Key, path) {
 			strippedKey := strings.TrimPrefix(kv.Key, path)
 			m[strings.SplitN(strippedKey[1:], "/", 2)[0]] = true
 		}
