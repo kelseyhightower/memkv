@@ -117,7 +117,7 @@ func TestList(t *testing.T) {
 	}
 }
 
-func TestListForChildKey(t *testing.T) {
+func TestListForFile(t *testing.T) {
 	s := New()
 	for k, v := range listTestMap {
 		s.Set(k, v)
