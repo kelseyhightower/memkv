@@ -30,6 +30,28 @@ func TestGet(t *testing.T) {
 	}
 }
 
+var getvodtests = []struct {
+	key   string
+	value string
+	want  string
+}{
+	{"/db/host", "configured", "configured"},
+	{"/db/port", "", "default"},
+}
+
+func GetValueOrDefault(t *testing.T) {
+	for _, tt := range getvodtests {
+		s := New()
+		if tt.value != "" {
+			s.Set(tt.key, tt.value)
+		}
+		got := s.GetValueOrDefault(tt.key, "default")
+		if got != tt.want {
+			t.Errorf("GetValue(%q) = %v want %v", tt.key, got, tt.want)
+		}
+	}
+}
+
 var getalltestinput = map[string]string{
 	"/app/db/pass":               "foo",
 	"/app/db/user":               "admin",
