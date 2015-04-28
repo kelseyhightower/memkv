@@ -1,7 +1,6 @@
 package memkv
 
 import (
-	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -9,23 +8,22 @@ import (
 var gettests = []struct {
 	key   string
 	value string
-	err   error
 	want  KVPair
 }{
-	{"/db/user", "admin", nil, KVPair{"/db/user", "admin"}},
-	{"/db/pass", "foo", nil, KVPair{"/db/pass", "foo"}},
-	{"/missing", "", ErrNotExist, KVPair{}},
+	{"/db/user", "admin", KVPair{"/db/user", "admin"}},
+	{"/db/pass", "foo", KVPair{"/db/pass", "foo"}},
+	{"/missing", "", KVPair{}},
 }
 
 func TestGet(t *testing.T) {
 	for _, tt := range gettests {
 		s := New()
-		if tt.err == nil {
+		if tt.value != "" {
 			s.Set(tt.key, tt.value)
 		}
-		got, err := s.Get(tt.key)
-		if got != tt.want || err != tt.err {
-			t.Errorf("Get(%q) = %v, %v, want %v, %v", tt.key, got, err, tt.want, tt.err)
+		got := s.Get(tt.key)
+		if got != tt.want {
+			t.Errorf("Get(%q) = %v, want %v", tt.key, got, tt.want)
 		}
 	}
 }
@@ -44,24 +42,23 @@ var getalltestinput = map[string]string{
 
 var getalltests = []struct {
 	pattern string
-	err     error
 	want    []KVPair
 }{
-	{"/app/db/*", nil,
+	{"/app/db/*",
 		[]KVPair{
 			KVPair{"/app/db/pass", "foo"},
 			KVPair{"/app/db/user", "admin"}}},
-	{"/app/*/host1", nil,
+	{"/app/*/host1",
 		[]KVPair{
 			KVPair{"/app/upstream/host1", "203.0.113.0.1:8080"},
 			KVPair{"/app/vhosts/host1", "app.example.com"}}},
 
-	{"/app/upstream/*", nil,
+	{"/app/upstream/*",
 		[]KVPair{
 			KVPair{"/app/upstream/host1", "203.0.113.0.1:8080"},
 			KVPair{"/app/upstream/host2", "203.0.113.0.2:8080"}}},
-	{"[]a]", filepath.ErrBadPattern, nil},
-	{"/app/missing/*", nil, []KVPair{}},
+	{"[]a]", nil},
+	{"/app/missing/*", []KVPair{}},
 }
 
 func TestGetAll(t *testing.T) {
@@ -70,9 +67,9 @@ func TestGetAll(t *testing.T) {
 		s.Set(k, v)
 	}
 	for _, tt := range getalltests {
-		got, err := s.GetAll(tt.pattern)
-		if !reflect.DeepEqual([]KVPair(got), []KVPair(tt.want)) || err != tt.err {
-			t.Errorf("GetAll(%q) = %v, %v, want %v, %v", tt.pattern, got, err, tt.want, tt.err)
+		got := s.GetAll(tt.pattern)
+		if !reflect.DeepEqual([]KVPair(got), []KVPair(tt.want)) {
+			t.Errorf("GetAll(%q) = %v, want %v", tt.pattern, got, tt.want)
 		}
 	}
 }
@@ -81,15 +78,15 @@ func TestDel(t *testing.T) {
 	s := New()
 	s.Set("/app/port", "8080")
 	want := KVPair{"/app/port", "8080"}
-	got, err := s.Get("/app/port")
-	if err != nil || got != want {
-		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, true)
+	got := s.Get("/app/port")
+	if got != want {
+		t.Errorf("Get(%q) = %v, want %v", "/app/port", got, want)
 	}
 	s.Del("/app/port")
 	want = KVPair{}
-	got, err = s.Get("/app/port")
-	if err != ErrNotExist || got != want {
-		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, false)
+	got = s.Get("/app/port")
+	if got != want {
+		t.Errorf("Get(%q) = %v, want %v", "/app/port", got, want)
 	}
 	s.Del("/app/port")
 }
@@ -98,21 +95,21 @@ func TestPurge(t *testing.T) {
 	s := New()
 	s.Set("/app/port", "8080")
 	want := KVPair{"/app/port", "8080"}
-	got, err := s.Get("/app/port")
-	if err != nil || got != want {
-		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, true)
+	got := s.Get("/app/port")
+	if got != want {
+		t.Errorf("Get(%q) = %v, want %v", "/app/port", got, want)
 	}
 	s.Purge()
 	want = KVPair{}
-	got, err = s.Get("/app/port")
-	if err != ErrNotExist || got != want {
-		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, false)
+	got = s.Get("/app/port")
+	if got != want {
+		t.Errorf("Get(%q) = %v, want %v", "/app/port", got, want)
 	}
 	s.Set("/app/port", "8080")
 	want = KVPair{"/app/port", "8080"}
-	got, err = s.Get("/app/port")
-	if err != nil || got != want {
-		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, true)
+	got = s.Get("/app/port")
+	if got != want {
+		t.Errorf("Get(%q) = %v, want %v", "/app/port", got, want)
 	}
 }
 
