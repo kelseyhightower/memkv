@@ -94,7 +94,7 @@ func (s Store) GetAll(pattern string) (KVPairs, error) {
 		}
 	}
 	if len(ks) == 0 {
-		return nil, ErrNoMatch
+		return ks, ErrNoMatch
 	}
 	sort.Sort(ks)
 	return ks, nil
