@@ -94,7 +94,7 @@ func (s Store) GetAll(pattern string) (KVPairs, error) {
 		}
 	}
 	if len(ks) == 0 {
-		return ks, ErrNoMatch
+		return ks, nil
 	}
 	sort.Sort(ks)
 	return ks, nil
@@ -105,6 +105,9 @@ func (s Store) GetAllValues(pattern string) ([]string, error) {
 	ks, err := s.GetAll(pattern)
 	if err != nil {
 		return vs, err
+	}
+	if len(ks) == 0 {
+		return vs, nil
 	}
 	for _, kv := range ks {
 		vs = append(vs, kv.Value)

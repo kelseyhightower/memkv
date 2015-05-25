@@ -61,6 +61,7 @@ var getalltests = []struct {
 			KVPair{"/app/upstream/host1", "203.0.113.0.1:8080"},
 			KVPair{"/app/upstream/host2", "203.0.113.0.2:8080"}}},
 	{"[]a]", filepath.ErrBadPattern, nil},
+	{"/app/missing/*", nil, []KVPair{}},
 }
 
 func TestGetAll(t *testing.T) {
