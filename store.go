@@ -9,6 +9,7 @@ import (
 	"errors"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -42,9 +43,33 @@ func New() Store {
 
 // Delete deletes the KVPair associated with key.
 func (s Store) Del(key string) {
+	s.DelAll(key)
+}
+
+func (s Store) DelAll(pattern string) error {
+	ks, err := s.GetAll(pattern)
 	s.Lock()
-	delete(s.m, key)
-	s.Unlock()
+	defer s.Unlock()
+	if err != nil {
+		return err
+	}
+	for _, kv := range ks {
+		delete(s.m, kv.Key)
+	}
+	return nil
+}
+
+func (s Store) DelAllRegexp(pattern string) error {
+	ks, err := s.GetAllRegexp(pattern)
+	s.Lock()
+	defer s.Unlock()
+	if err != nil {
+		return err
+	}
+	for _, kv := range ks {
+		delete(s.m, kv.Key)
+	}
+	return nil
 }
 
 // Exists checks for the existence of key in the store.
@@ -90,6 +115,23 @@ func (s Store) GetAll(pattern string) (KVPairs, error) {
 			return nil, err
 		}
 		if m {
+			ks = append(ks, kv)
+		}
+	}
+	if len(ks) == 0 {
+		return ks, nil
+	}
+	sort.Sort(ks)
+	return ks, nil
+}
+
+func (s Store) GetAllRegexp(pattern string) (KVPairs, error) {
+	ks := make(KVPairs, 0)
+	re := regexp.MustCompile(pattern)
+	s.RLock()
+	defer s.RUnlock()
+	for _, kv := range s.m {
+		if re.MatchString(kv.Key) {
 			ks = append(ks, kv)
 		}
 	}
