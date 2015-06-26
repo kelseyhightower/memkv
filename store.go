@@ -41,6 +41,7 @@ func New() Store {
 		"getrx":  s.GetAllRegexp,
 		"group":  s.Group,
 		"select": s.Select,
+		"hash":   s.Hash,
 		"take":   s.Take,
 		"keys":   s.Keys,
 		"values": s.Values,
@@ -236,6 +237,18 @@ func (s Store) Group(ks KVPairs, pattern string) map[string]KVPairs {
 	}
 	for group, _ := range result {
 		sort.Sort(result[group])
+	}
+	return result
+}
+
+func (s Store) Hash(ks KVPairs, pattern string) map[string]string {
+	re := regexp.MustCompile(pattern)
+	result := make(map[string]string)
+	for _, kv := range ks {
+		match := re.FindStringSubmatch(kv.Key)
+		if len(match) >= 1 {
+			result[match[1]] = kv.Value
+		}
 	}
 	return result
 }
