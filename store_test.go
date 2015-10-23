@@ -126,6 +126,10 @@ var listTestMap = map[string]string{
 	"/deis/services/srv1/node3":      "10.244.1.3:80",
 	"/deis/services/srv2/node1":      "10.244.2.1:80",
 	"/deis/services/srv2/node2":      "10.244.2.2:80",
+	"/deis/prefix/node1":             "prefix_node1",
+	"/deis/prefix/node2":             "prefix_node2",
+	"/deis/prefix_a/node3":           "prefix_a_node3",
+	"/deis/prefixb/node4":            "prefixb_node4",
 }
 
 func TestList(t *testing.T) {
@@ -137,6 +141,23 @@ func TestList(t *testing.T) {
 	paths := []string{
 		"/deis/services",
 		"/deis/services/",
+	}
+	for _, filePath := range paths {
+		got := s.List(filePath)
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("List(%s) = %v, want %v", filePath, got, want)
+		}
+	}
+}
+
+func TestListForSamePrefix(t *testing.T) {
+	s := New()
+	for k, v := range listTestMap {
+		s.Set(k, v)
+	}
+	want := []string{"node1", "node2"}
+	paths := []string{
+		"/deis/prefix",
 	}
 	for _, filePath := range paths {
 		got := s.List(filePath)
