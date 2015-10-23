@@ -117,15 +117,25 @@ func TestPurge(t *testing.T) {
 }
 
 var listTestMap = map[string]string{
-	"/deis/database/user":            "user",
-	"/deis/database/pass":            "pass",
-	"/deis/services/key":             "value",
-	"/deis/services/notaservice/foo": "bar",
-	"/deis/services/srv1/node1":      "10.244.1.1:80",
-	"/deis/services/srv1/node2":      "10.244.1.2:80",
-	"/deis/services/srv1/node3":      "10.244.1.3:80",
-	"/deis/services/srv2/node1":      "10.244.2.1:80",
-	"/deis/services/srv2/node2":      "10.244.2.2:80",
+	"/deis/database/user":             "user",
+	"/deis/database/pass":             "pass",
+	"/deis/services/key":              "value",
+	"/deis/services/notaservice/foo":  "bar",
+	"/deis/services/srv1/node1":       "10.244.1.1:80",
+	"/deis/services/srv1/node2":       "10.244.1.2:80",
+	"/deis/services/srv1/node3":       "10.244.1.3:80",
+	"/deis/services/srv2/node1":       "10.244.2.1:80",
+	"/deis/services/srv2/node2":       "10.244.2.2:80",
+	"/deis/prefix/node1":              "prefix_node1",
+	"/deis/prefix/node2/leafnode":     "prefix_node2",
+	"/deis/prefix/node3/leafnode":     "prefix_node3",
+	"/deis/prefix_a/node4":            "prefix_a_node4",
+	"/deis/prefixb/node5/leafnode":    "prefixb_node5",
+	"/deis/dirprefix/node1":           "prefix_node1",
+	"/deis/dirprefix/node2/leafnode":  "prefix_node2",
+	"/deis/dirprefix/node3/leafnode":  "prefix_node3",
+	"/deis/dirprefix_a/node4":         "prefix_a_node4",
+	"/deis/dirprefixb/node5/leafnode": "prefixb_node5",
 }
 
 func TestList(t *testing.T) {
@@ -137,6 +147,24 @@ func TestList(t *testing.T) {
 	paths := []string{
 		"/deis/services",
 		"/deis/services/",
+	}
+	for _, filePath := range paths {
+		got := s.List(filePath)
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("List(%s) = %v, want %v", filePath, got, want)
+		}
+	}
+}
+
+func TestListForSamePrefix(t *testing.T) {
+	s := New()
+	for k, v := range listTestMap {
+		s.Set(k, v)
+	}
+	want := []string{"node1", "node2", "node3"}
+	paths := []string{
+		"/deis/prefix",
+		"/deis/prefix/",
 	}
 	for _, filePath := range paths {
 		got := s.List(filePath)
@@ -167,6 +195,24 @@ func TestListDir(t *testing.T) {
 	paths := []string{
 		"/deis/services",
 		"/deis/services/",
+	}
+	for _, filePath := range paths {
+		got := s.ListDir(filePath)
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("List(%s) = %v, want %v", filePath, got, want)
+		}
+	}
+}
+
+func TestListDirForSamePrefix(t *testing.T) {
+	s := New()
+	for k, v := range listTestMap {
+		s.Set(k, v)
+	}
+	want := []string{"node2", "node3"}
+	paths := []string{
+		"/deis/dirprefix",
+		"/deis/dirprefix/",
 	}
 	for _, filePath := range paths {
 		got := s.ListDir(filePath)
