@@ -49,71 +49,57 @@ func (s Store) Del(key string) {
 
 // Exists checks for the existence of key in the store.
 func (s Store) Exists(key string) bool {
-	_, err := s.Get(key)
-	if err != nil {
+	kv := s.Get(key)
+	if kv.Value == "" {
 		return false
 	}
 	return true
 }
 
 // Get gets the KVPair associated with key. If there is no KVPair
-// associated with key, Get returns KVPair{}, ErrNotExist.
-func (s Store) Get(key string) (KVPair, error) {
+// associated with key, Get returns KVPair{}.
+func (s Store) Get(key string) KVPair {
 	s.RLock()
-	kv, ok := s.m[key]
+	kv := s.m[key]
 	s.RUnlock()
-	if !ok {
-		return kv, ErrNotExist
-	}
-	return kv, nil
-}
-
-// GetValue gets the value associated with key. If there are no values
-// associated with key, GetValue returns "", ErrNotExist.
-func (s Store) GetValue(key string) (string, error) {
-	kv, err := s.Get(key)
-	if err != nil {
-		return "", err
-	}
-	return kv.Value, nil
+	return kv
 }
 
 // GetAll returns a KVPair for all nodes with keys matching pattern.
 // The syntax of patterns is the same as in filepath.Match.
-func (s Store) GetAll(pattern string) (KVPairs, error) {
+func (s Store) GetAll(pattern string) KVPairs {
 	ks := make(KVPairs, 0)
 	s.RLock()
 	defer s.RUnlock()
 	for _, kv := range s.m {
 		m, err := filepath.Match(pattern, kv.Key)
 		if err != nil {
-			return nil, err
+			return nil
 		}
 		if m {
 			ks = append(ks, kv)
 		}
 	}
 	if len(ks) == 0 {
-		return ks, nil
+		return nil
 	}
 	sort.Sort(ks)
-	return ks, nil
+	return ks
 }
 
-func (s Store) GetAllValues(pattern string) ([]string, error) {
+// GetValue gets the value associated with key. If there are no values
+// associated with key, GetValue returns "".
+func (s Store) GetValue(key string) string {
+	return s.Get(key).Value
+}
+
+func (s Store) GetAllValues(pattern string) []string {
 	vs := make([]string, 0)
-	ks, err := s.GetAll(pattern)
-	if err != nil {
-		return vs, err
-	}
-	if len(ks) == 0 {
-		return vs, nil
-	}
-	for _, kv := range ks {
+	for _, kv := range s.GetAll(pattern) {
 		vs = append(vs, kv.Value)
 	}
 	sort.Strings(vs)
-	return vs, nil
+	return vs
 }
 
 func (s Store) List(filePath string) []string {
