@@ -14,7 +14,7 @@ var gettests = []struct {
 }{
 	{"/db/user", "admin", nil, KVPair{"/db/user", "admin"}},
 	{"/db/pass", "foo", nil, KVPair{"/db/pass", "foo"}},
-	{"/missing", "", ErrNotExist, KVPair{}},
+	{"/missing", "", &KeyError{"/missing", ErrNotExist}, KVPair{}},
 }
 
 func TestGet(t *testing.T) {
@@ -24,7 +24,7 @@ func TestGet(t *testing.T) {
 			s.Set(tt.key, tt.value)
 		}
 		got, err := s.Get(tt.key)
-		if got != tt.want || err != tt.err {
+		if got != tt.want || !reflect.DeepEqual(err, tt.err) {
 			t.Errorf("Get(%q) = %v, %v, want %v, %v", tt.key, got, err, tt.want, tt.err)
 		}
 	}
@@ -88,7 +88,7 @@ func TestDel(t *testing.T) {
 	s.Del("/app/port")
 	want = KVPair{}
 	got, err = s.Get("/app/port")
-	if err != ErrNotExist || got != want {
+	if !reflect.DeepEqual(err, &KeyError{"/app/port", ErrNotExist}) || got != want {
 		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, false)
 	}
 	s.Del("/app/port")
@@ -105,7 +105,7 @@ func TestPurge(t *testing.T) {
 	s.Purge()
 	want = KVPair{}
 	got, err = s.Get("/app/port")
-	if err != ErrNotExist || got != want {
+	if !reflect.DeepEqual(err, &KeyError{"/app/port", ErrNotExist}) || got != want {
 		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, false)
 	}
 	s.Set("/app/port", "8080")
