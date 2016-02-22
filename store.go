@@ -58,11 +58,14 @@ func (s Store) Del(key string) {
 
 // Exists checks for the existence of key in the store.
 func (s Store) Exists(key string) bool {
-	_, err := s.Get(key)
-	if err != nil {
-		return false
+	s.RLock()
+	defer s.RUnlock()
+	for _, kv := range s.m {
+		if strings.HasPrefix(kv.Key, key) {
+			return true
+		}
 	}
-	return true
+	return false
 }
 
 // Get gets the KVPair associated with key. If there is no KVPair
