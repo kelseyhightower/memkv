@@ -62,7 +62,10 @@ func (s Store) Exists(key string) bool {
 	defer s.RUnlock()
 	for _, kv := range s.m {
 		if strings.HasPrefix(kv.Key, key) {
-			return true
+			_, err := s.Get(key)
+			if strings.HasPrefix(kv.Key[len(key):], "/") || err == nil {
+				return true
+			}
 		}
 	}
 	return false
