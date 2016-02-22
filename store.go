@@ -44,6 +44,7 @@ func New() Store {
 		"get":    s.Get,
 		"gets":   s.GetAll,
 		"getv":   s.GetValue,
+		"getvod": s.GetValueOrDefault,
 		"getvs":  s.GetAllValues,
 	}
 	return s
@@ -85,6 +86,16 @@ func (s Store) GetValue(key string) (string, error) {
 		return "", err
 	}
 	return kv.Value, nil
+}
+
+// GetValueOrDefault gets the value associated with key. If there are no values
+// associated with key, GetValueOrDefault returns defaultValue.
+func (s Store) GetValueOrDefault(key string, defaultValue string) string {
+	kv, err := s.Get(key)
+	if err != nil {
+		return defaultValue
+	}
+	return kv.Value
 }
 
 // GetAll returns a KVPair for all nodes with keys matching pattern.
