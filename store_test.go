@@ -30,6 +30,42 @@ func TestGet(t *testing.T) {
 	}
 }
 
+var getvtests = []struct {
+	key   string
+	value string
+	err   error
+	want  string
+}{
+	{"/db/user", "admin", nil, "admin"},
+	{"/db/pass", "foo", nil, "foo"},
+	{"/missing", "", &KeyError{"/missing", ErrNotExist}, ""},
+}
+
+func TestGetValue(t *testing.T) {
+	for _, tt := range getvtests {
+		s := New()
+		if tt.err == nil {
+			s.Set(tt.key, tt.value)
+		}
+		got, err := s.GetValue(tt.key)
+		if got != tt.want || !reflect.DeepEqual(err, tt.err) {
+			t.Errorf("Get(%q) = %v, %v, want %v, %v", tt.key, got, err, tt.want, tt.err)
+		}
+	}
+}
+
+func TestGetValueWithDefault(t *testing.T) {
+	want := "defaultValue"
+	s := New()
+	got, err := s.GetValue("/db/user", "defaultValue")
+	if err != nil {
+		t.Errorf("Unexpected error", err.Error())
+	}
+	if got != want {
+		t.Errorf("want %v, got %v", want, got)
+	}
+}
+
 var getalltestinput = map[string]string{
 	"/app/db/pass":               "foo",
 	"/app/db/user":               "admin",
