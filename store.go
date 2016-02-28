@@ -6,9 +6,11 @@
 package memkv
 
 import (
+	"encoding/json"
 	"errors"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -45,15 +47,49 @@ func New() Store {
 		"gets":   s.GetAll,
 		"getv":   s.GetValue,
 		"getvs":  s.GetAllValues,
+		"getrx":  s.GetAllRegexp,
+		"group":  s.Group,
+		"select": s.Select,
+		"hash":   s.Hash,
+		"take":   s.Take,
+		"keys":   s.Keys,
+		"values": s.Values,
+		"object": s.JSONObject,
+		"array":  s.JSONArray,
+		"join":   s.Join,
 	}
 	return s
 }
 
 // Delete deletes the KVPair associated with key.
 func (s Store) Del(key string) {
+	s.DelAll(key)
+}
+
+func (s Store) DelAll(pattern string) error {
+	ks, err := s.GetAll(pattern)
 	s.Lock()
-	delete(s.m, key)
-	s.Unlock()
+	defer s.Unlock()
+	if err != nil {
+		return err
+	}
+	for _, kv := range ks {
+		delete(s.m, kv.Key)
+	}
+	return nil
+}
+
+func (s Store) DelAllRegexp(pattern string) error {
+	ks, err := s.GetAllRegexp(pattern)
+	s.Lock()
+	defer s.Unlock()
+	if err != nil {
+		return err
+	}
+	for _, kv := range ks {
+		delete(s.m, kv.Key)
+	}
+	return nil
 }
 
 // Exists checks for the existence of key in the store.
@@ -190,6 +226,104 @@ func (s Store) Purge() {
 		delete(s.m, k)
 	}
 	s.Unlock()
+}
+
+func (s Store) GetAllRegexp(pattern string) (KVPairs, error) {
+	ks := make(KVPairs, 0)
+	re := regexp.MustCompile(pattern)
+	s.RLock()
+	defer s.RUnlock()
+	for _, kv := range s.m {
+		if re.MatchString(kv.Key) {
+			ks = append(ks, kv)
+		}
+	}
+	if len(ks) == 0 {
+		return ks, nil
+	}
+	sort.Sort(ks)
+	return ks, nil
+}
+
+func (s Store) Group(ks KVPairs, pattern string) map[string]KVPairs {
+	re := regexp.MustCompile(pattern)
+	result := make(map[string]KVPairs)
+	for _, kv := range ks {
+		match := re.FindStringSubmatch(kv.Key)
+		if len(match) >= 1 {
+			result[match[1]] = append(result[match[1]], kv)
+		}
+	}
+	for group, _ := range result {
+		sort.Sort(result[group])
+	}
+	return result
+}
+
+func (s Store) Hash(ks KVPairs, pattern string) map[string]string {
+	re := regexp.MustCompile(pattern)
+	result := make(map[string]string)
+	for _, kv := range ks {
+		match := re.FindStringSubmatch(kv.Key)
+		if len(match) >= 1 {
+			result[match[1]] = kv.Value
+		}
+	}
+	return result
+}
+
+func (s Store) Select(ks KVPairs, pattern string) KVPairs {
+	re := regexp.MustCompile(pattern)
+	result := KVPairs{}
+	for _, kv := range ks {
+		if re.MatchString(kv.Key) {
+			result = append(result, kv)
+		}
+	}
+	sort.Sort(result)
+	return result
+}
+
+func (s Store) Take(ks KVPairs, pattern string) string {
+	re := regexp.MustCompile(pattern)
+	for _, kv := range ks {
+		if re.MatchString(kv.Key) {
+			return kv.Value
+		}
+	}
+	return ""
+}
+
+func (s Store) Keys(ks KVPairs) []string {
+	result := make([]string, 0)
+	for _, kv := range ks {
+		result = append(result, kv.Key)
+	}
+	return result
+}
+
+func (s Store) Values(ks KVPairs) []string {
+	result := make([]string, 0)
+	for _, kv := range ks {
+		result = append(result, kv.Value)
+	}
+	return result
+}
+
+func (s Store) JSONObject(raw string) (map[string]interface{}, error) {
+	var data map[string]interface{}
+	err := json.Unmarshal([]byte(raw), &data)
+	return data, err
+}
+
+func (s Store) JSONArray(raw string) ([]interface{}, error) {
+	var data []interface{}
+	err := json.Unmarshal([]byte(raw), &data)
+	return data, err
+}
+
+func (s Store) Join(strs ...string) string {
+	return strings.Join(strs, "")
 }
 
 func stripKey(key, prefix string) string {
