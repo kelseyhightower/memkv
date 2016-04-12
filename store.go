@@ -45,6 +45,7 @@ func New() Store {
 		"gets":   s.GetAll,
 		"getv":   s.GetValue,
 		"getvs":  s.GetAllValues,
+		"getr":   s.GetAllRecursive,
 	}
 	return s
 }
@@ -114,6 +115,25 @@ func (s Store) GetAll(pattern string) (KVPairs, error) {
 		return ks, nil
 	}
 	sort.Sort(ks)
+	return ks, nil
+}
+
+// GetAllRecursive returns a KVPair for all nodes recursive with keys starting
+// with prefix.
+func (s Store) GetAllRecursive(prefix string) (KVPairs, error) {
+	ks := make(KVPairs, 0)
+	s.RLock()
+	defer s.RUnlock()
+	for _, kv := range s.m {
+		m := strings.HasPrefix(kv.Key, prefix)
+		if m {
+			ks = append(ks, kv)
+		}
+	}
+	if len(ks) == 0 {
+		return ks, nil
+	}
+	sort.Sort(sort.Reverse(DepthSortedKVPairs(ks)))
 	return ks, nil
 }
 
