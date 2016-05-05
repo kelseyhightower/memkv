@@ -133,20 +133,19 @@ func (s Store) GetAllValues(pattern string) ([]string, error) {
 	return vs, nil
 }
 
+// Returns all subkeys, []string, where path matches its 
+// argument. Returns an empty list if path is not found.
 func (s Store) List(filePath string) []string {
 	vs := make([]string, 0)
 	m := make(map[string]bool)
 	s.RLock()
 	defer s.RUnlock()
-	prefix := pathToTerms(path.Clean(filePath))
+	prefix := path.Clean(filePath)
 	for _, kv := range s.m {
-		if kv.Key == filePath {
+		target := path.Dir(kv.Key)
+
+		if(target == prefix){
 			m[path.Base(kv.Key)] = true
-			continue
-		}
-		target := pathToTerms(path.Dir(kv.Key))
-		if samePrefixTerms(target, prefix) {
-			m[strings.Split(stripKey(kv.Key, filePath), "/")[0]] = true
 		}
 	}
 	for k := range m {
