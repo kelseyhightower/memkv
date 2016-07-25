@@ -138,14 +138,14 @@ func (s Store) List(filePath string) []string {
 	m := make(map[string]bool)
 	s.RLock()
 	defer s.RUnlock()
-	prefix := pathToTerms(path.Clean(filePath))
+	prefix := pathToTerms(filePath)
 	for _, kv := range s.m {
 		if kv.Key == filePath {
 			m[path.Base(kv.Key)] = true
 			continue
 		}
 		target := pathToTerms(path.Dir(kv.Key))
-		if samePrefixTerms(target, prefix) {
+		if samePrefixTerms(prefix, target) {
 			m[strings.Split(stripKey(kv.Key, filePath), "/")[0]] = true
 		}
 	}
@@ -200,13 +200,12 @@ func pathToTerms(filePath string) []string {
 	return strings.Split(path.Clean(filePath), "/")
 }
 
-func samePrefixTerms(left, right []string) bool {
-	l := len(left)
-	if len(left) > len(right) {
-		l = len(right)
+func samePrefixTerms(prefix, test []string) bool {
+	if len(test) < len(prefix) {
+		return false
 	}
-	for i := 0; i < l; i++ {
-		if left[i] != right[i] {
+	for i := 0; i < len(prefix); i++ {
+		if prefix[i] != test[i] {
 			return false
 		}
 	}
