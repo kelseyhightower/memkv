@@ -226,7 +226,7 @@ func TestListEmptyChildrenTrailingSlash(t *testing.T) {
 	s := New()
 	s.Set("/top/first", "")
 	s.Set("/top/second", "")
-	s.Set("/misc", "")
+
 	want := []string{}
 	paths := []string{"/top/first/", "/top/second/"}
 	for _, filePath := range paths {
@@ -241,13 +241,12 @@ func TestListEmptyChildren(t *testing.T) {
 	s := New()
 	s.Set("/top/first", "")
 	s.Set("/top/second", "")
-	s.Set("/misc", "")
-	
+
 	first := s.List("/top/first")
 	if !reflect.DeepEqual(first, []string{"first"}) {
 		t.Errorf("List(/top/first) = %v, want [first]", first)
 	}
-	
+
 	second := s.List("/top/second")
 	if !reflect.DeepEqual(second, []string{"second"}) {
 		t.Errorf("List(/top/second) = %v, want [second]", second)
