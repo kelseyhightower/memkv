@@ -145,7 +145,7 @@ func (s Store) List(filePath string) []string {
 			continue
 		}
 		target := pathToTerms(path.Dir(kv.Key))
-		if samePrefixTerms(target, prefix) {
+		if len(target) >= len(prefix) && samePrefixTerms(target, prefix) {
 			m[strings.Split(stripKey(kv.Key, filePath), "/")[0]] = true
 		}
 	}

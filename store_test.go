@@ -164,6 +164,8 @@ var listTestMap = map[string]string{
 	"/deis/services/srv2/node2":       "10.244.2.2:80",
 	"/deis/prefix/node1":              "prefix_node1",
 	"/deis/prefix/node2/leafnode":     "prefix_node2",
+	"/deis/prefix/node2/sub1/leaf1":   "prefix_node2_sub1_leaf1",
+	"/deis/prefix/node2/sub1/leaf2":   "prefix_node2_sub1_leaf2",
 	"/deis/prefix/node3/leafnode":     "prefix_node3",
 	"/deis/prefix_a/node4":            "prefix_a_node4",
 	"/deis/prefixb/node5/leafnode":    "prefixb_node5",
@@ -217,6 +219,18 @@ func TestListForFile(t *testing.T) {
 	}
 	want := []string{"key"}
 	got := s.List("/deis/services/key")
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("List(%s) = %v, want %v", "/deis/services", got, want)
+	}
+}
+
+func TestListForMixedLeafSubnodes(t *testing.T) {
+	s := New()
+	for k, v := range listTestMap {
+		s.Set(k, v)
+	}
+	want := []string{"leaf1", "leaf2"}
+	got := s.List("/deis/prefix/node2/sub1")
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("List(%s) = %v, want %v", "/deis/services", got, want)
 	}
