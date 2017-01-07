@@ -66,6 +66,18 @@ func TestGetValueWithDefault(t *testing.T) {
 	}
 }
 
+func TestGetValueWithEmptyDefault(t *testing.T) {
+	want := ""
+	s := New()
+	got, err := s.GetValue("/db/user", "")
+	if err != nil {
+		t.Errorf("Unexpected error", err.Error())
+	}
+	if got != want {
+		t.Errorf("want %v, got %v", want, got)
+	}
+}
+
 var getalltestinput = map[string]string{
 	"/app/db/pass":               "foo",
 	"/app/db/user":               "admin",
