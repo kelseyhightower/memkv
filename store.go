@@ -8,7 +8,6 @@ package memkv
 import (
 	"errors"
 	"path"
-	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -92,13 +91,13 @@ func (s Store) GetValue(key string, v ...string) (string, error) {
 }
 
 // GetAll returns a KVPair for all nodes with keys matching pattern.
-// The syntax of patterns is the same as in filepath.Match.
+// The syntax of patterns is the same as in path.Match.
 func (s Store) GetAll(pattern string) (KVPairs, error) {
 	ks := make(KVPairs, 0)
 	s.RLock()
 	defer s.RUnlock()
 	for _, kv := range s.m {
-		m, err := filepath.Match(pattern, kv.Key)
+		m, err := path.Match(pattern, kv.Key)
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +156,7 @@ func (s Store) ListDir(filePath string) []string {
 	m := make(map[string]bool)
 	s.RLock()
 	defer s.RUnlock()
-	prefix := pathToTerms(path.Clean(filePath))
+	prefix := pathToTerms(filePath)
 	for _, kv := range s.m {
 		if strings.HasPrefix(kv.Key, filePath) {
 			items := pathToTerms(path.Dir(kv.Key))
