@@ -234,6 +234,37 @@ func TestListForFile(t *testing.T) {
 	}
 }
 
+func TestListEmptyChildrenTrailingSlash(t *testing.T) {
+	s := New()
+	s.Set("/top/first", "")
+	s.Set("/top/second", "")
+
+	want := []string{}
+	paths := []string{"/top/first/", "/top/second/"}
+	for _, filePath := range paths {
+		got := s.List(filePath)
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("List(%s) = %v, want %v", filePath, got, want)
+		}
+	}
+}
+
+func TestListEmptyChildren(t *testing.T) {
+	s := New()
+	s.Set("/top/first", "")
+	s.Set("/top/second", "")
+
+	first := s.List("/top/first")
+	if !reflect.DeepEqual(first, []string{"first"}) {
+		t.Errorf("List(/top/first) = %v, want [first]", first)
+	}
+
+	second := s.List("/top/second")
+	if !reflect.DeepEqual(second, []string{"second"}) {
+		t.Errorf("List(/top/second) = %v, want [second]", second)
+	}
+}
+
 func TestListDir(t *testing.T) {
 	s := New()
 	for k, v := range listTestMap {
