@@ -59,7 +59,7 @@ func TestGetValueWithDefault(t *testing.T) {
 	s := New()
 	got, err := s.GetValue("/db/user", "defaultValue")
 	if err != nil {
-		t.Errorf("Unexpected error", err.Error())
+		t.Errorf("Unexpected error: %s", err.Error())
 	}
 	if got != want {
 		t.Errorf("want %v, got %v", want, got)
@@ -71,7 +71,7 @@ func TestGetValueWithEmptyDefault(t *testing.T) {
 	s := New()
 	got, err := s.GetValue("/db/user", "")
 	if err != nil {
-		t.Errorf("Unexpected error", err.Error())
+		t.Errorf("Unexpected error: %s", err.Error())
 	}
 	if got != want {
 		t.Errorf("want %v, got %v", want, got)
